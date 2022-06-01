@@ -78,8 +78,8 @@ class PathEncoder(nn.Module):
         concat = torch.cat(encoded_contexts, dim=-1)
         #print(f'concat {concat}')
         # [n contexts; output size]
-        #concat = self.embedding_dropout(concat)
-        self.save(concat, 'concat.pkl')
+        concat = self.embedding_dropout(concat)
+        #self.save(concat, 'concat.pkl')
         linear = self.linear(concat)
         #self.save(self.linear.weight, 'self.linear.weight.pkl')
         #print(f'linear {self.linear.weight}')
