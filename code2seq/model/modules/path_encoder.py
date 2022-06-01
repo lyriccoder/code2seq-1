@@ -75,17 +75,8 @@ class PathEncoder(nn.Module):
 
     def _concat_with_linear(self, encoded_contexts: List[torch.Tensor]) -> torch.Tensor:
         # [n contexts; sum across all embeddings]
-        concat = torch.cat(encoded_contexts, dim=-1)
-        #print(f'concat {concat}')
-        # [n contexts; output size]
         concat = self.embedding_dropout(concat)
-        #self.save(concat, 'concat.pkl')
-        linear = self.linear(concat)
-        #self.save(self.linear.weight, 'self.linear.weight.pkl')
-        #print(f'linear {self.linear.weight}')
-        norm = self.norm(linear)
-        #print(f'norm {norm}')
-        return torch.tanh(norm)
+        return torch.tanh(self.norm(self.linear(concat)))
 
     def save(self, your_data, filename):
         # Store data (serialize)
