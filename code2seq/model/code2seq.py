@@ -49,6 +49,9 @@ class Code2Seq(LightningModule):
         self.__metrics = MetricCollection(metrics)
 
         self._encoder = self._get_encoder(model_config)
+        #model_config.rnn_dropout = 0
+        print(f'model_config.rnn_dropout: {model_config.rnn_dropout}')
+        print(f'Decoder step: {len(vocabulary.label_to_id)}')
         decoder_step = LSTMDecoderStep(model_config, len(vocabulary.label_to_id), self.__pad_idx)
         self._decoder = Decoder(
             decoder_step, len(vocabulary.label_to_id), vocabulary.label_to_id[vocabulary.SOS], teacher_forcing

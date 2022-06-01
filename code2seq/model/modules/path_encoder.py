@@ -3,6 +3,8 @@ from typing import List
 import torch
 from omegaconf import DictConfig
 from torch import nn
+import pickle
+import uuid
 
 
 class PathEncoder(nn.Module):
@@ -74,11 +76,28 @@ class PathEncoder(nn.Module):
     def _concat_with_linear(self, encoded_contexts: List[torch.Tensor]) -> torch.Tensor:
         # [n contexts; sum across all embeddings]
         concat = torch.cat(encoded_contexts, dim=-1)
-
+        #print(f'concat {concat}')
         # [n contexts; output size]
-        concat = self.embedding_dropout(concat)
-        return torch.tanh(self.norm(self.linear(concat)))
+        #concat = self.embedding_dropout(concat)
+        self.save(concat, 'concat.pkl')
+        linear = self.linear(concat)
+        #self.save(self.linear.weight, 'self.linear.weight.pkl')
+        #print(f'linear {self.linear.weight}')
+        norm = self.norm(linear)
+        #print(f'norm {norm}')
+        return torch.tanh(norm)
 
+    def save(self, your_data, filename):
+        # Store data (serialize)
+        with open(f'{filename}', 'wb') as handle:
+            pickle.dump(your_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            
+    def load(self, filename):
+        # Load data (deserialize)
+        with open(f'{filename}', 'rb') as handle:
+            unserialized_data = pickle.load(handle)
+            return unserialized_data
+        
     def forward(self, from_token: torch.Tensor, path_nodes: torch.Tensor, to_token: torch.Tensor) -> torch.Tensor:
         """Encode each path context into the vector
 
@@ -90,10 +109,13 @@ class PathEncoder(nn.Module):
         # [n contexts; embedding size]
         encoded_from_tokens = self._token_embedding(from_token)
         encoded_to_tokens = self._token_embedding(to_token)
-
+        
         # [n contexts; rnn size * num directions]
         encoded_paths = self._path_nodes_embedding(path_nodes)
 
         # [n contexts; output size]
         output = self._concat_with_linear([encoded_from_tokens, encoded_paths, encoded_to_tokens])
+        #print(f'output {output}')
+        #print(f'encoded_from_tokens{encoded_from_tokens}')
+        
         return output
