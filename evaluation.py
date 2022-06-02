@@ -94,6 +94,12 @@ if __name__ == '__main__':
         type=str,
         required=True
     )
+    parser.add_argument(
+        '--beam_width',
+        type=int,
+        required=True,
+        default=10
+    )
     args = parser.parse_args()
     config = OmegaConf.load(args.config)
     c2s = Code2Seq.load_from_checkpoint(args.checkpoint_path)
@@ -118,7 +124,7 @@ if __name__ == '__main__':
         to_token=to_token,
         contexts_per_label=contexts,
         output_length=10,
-        beam_width=10)
+        beam_width=args.beam_width)
     for seq, val in output.items():
         labels_non_f = [
             id_to_label[int(i)] for i in seq
