@@ -11,6 +11,7 @@ from typing import Optional, List, cast
 from random import shuffle
 from typing import Dict, List, Optional
 
+
 class PathContextConvert:
     _separator = "|"
 
@@ -25,7 +26,7 @@ class PathContextConvert:
         n_contexts = min(len(raw_path_contexts), self._config.max_context)
         if self._random_context:
             shuffle(raw_path_contexts)
-            
+
         raw_path_contexts = raw_path_contexts[:n_contexts]
         if self._config.max_label_parts == 1:
             label = self.tokenize_class(raw_label, self._vocab.label_to_id)
@@ -73,16 +74,6 @@ def _transpose(list_of_lists: List[List[int]]) -> List[List[int]]:
 
 
 if __name__ == '__main__':
-    testCode = """
-    int f(n) {
-        if (n == 2) {
-            return 0;
-        }
-        else {
-            return 1;
-        }
-    }
-    """
 
     parser = argparse.ArgumentParser(
         description='Run performance testing for program-slicing repo with certain commit id'
@@ -93,10 +84,9 @@ if __name__ == '__main__':
         required=True
     )
     parser.add_argument(
-        '--code',
+        '--path_context',
         type=str,
-        required=False,
-        default=testCode
+        required=True
     )
     parser.add_argument(
         '--config',
@@ -105,14 +95,12 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     config = OmegaConf.load(args.config)
-    # checkpoint_path = config.checkpoint
     c2s = Code2Seq.load_from_checkpoint(args.checkpoint_path)
     c2s.eval()
     id_to_label = {idx: lab for (lab, idx) in c2s._vocabulary.label_to_id.items()}
 
     converter = PathContextConvert(c2s._vocabulary, config.data, False)
-
-    s = converter.getPathContext('get|post|process|logout|url string,Cls0|Mth|Nm1,METHOD_NAME string,Cls0|Mth|Prm|VDID0,request string,Cls0|Mth|Prm|Cls1,http|servlet|request METHOD_NAME,Nm1|Mth|Prm|VDID0,request METHOD_NAME,Nm1|Mth|Prm|Cls1,http|servlet|request METHOD_NAME,Nm1|Mth|Bk|Ret|Cal0|Nm0,auth|utils METHOD_NAME,Nm1|Mth|Bk|Ret|Cal0|Nm2,request METHOD_NAME,Nm1|Mth|Bk|Ret|Cal0|Fld3|Nm0,am|post|auth|process|interface METHOD_NAME,Nm1|Mth|Bk|Ret|Cal0|Fld3|Nm2,post|process|logout|url METHOD_NAME,Nm1|Mth|Bk|Ret|Cal0|Nm3,get|post|process|url request,VDID0|Prm|Cls1,http|servlet|request request,VDID0|Prm|Mth|Bk|Ret|Cal0|Nm0,auth|utils request,VDID0|Prm|Mth|Bk|Ret|Cal0|Nm2,request request,VDID0|Prm|Mth|Bk|Ret|Cal0|Fld3|Nm0,am|post|auth|process|interface request,VDID0|Prm|Mth|Bk|Ret|Cal0|Fld3|Nm2,post|process|logout|url request,VDID0|Prm|Mth|Bk|Ret|Cal0|Nm3,get|post|process|url http|servlet|request,Cls1|Prm|Mth|Bk|Ret|Cal0|Nm0,auth|utils http|servlet|request,Cls1|Prm|Mth|Bk|Ret|Cal0|Nm2,request http|servlet|request,Cls1|Prm|Mth|Bk|Ret|Cal0|Fld3|Nm0,am|post|auth|process|interface http|servlet|request,Cls1|Prm|Mth|Bk|Ret|Cal0|Fld3|Nm2,post|process|logout|url http|servlet|request,Cls1|Prm|Mth|Bk|Ret|Cal0|Nm3,get|post|process|url auth|utils,Nm0|Cal|Nm2,request request,Nm2|Cal|Fld3|Nm0,am|post|auth|process|interface request,Nm2|Cal|Fld3|Nm2,post|process|logout|url request,Nm2|Cal|Nm3,get|post|process|url am|post|auth|process|interface,Nm0|Fld3|Nm2,post|process|logout|url am|post|auth|process|interface,Nm0|Fld3|Cal|Nm3,get|post|process|url post|process|logout|url,Nm2|Fld3|Cal|Nm3,get|post|process|url')
+    s = converter.getPathContext(path_context)
     from_token = torch.tensor(
         _transpose([path.from_token for path in s.path_contexts]),
         dtype=torch.long)
@@ -131,12 +119,13 @@ if __name__ == '__main__':
         output_length=10,
         beam_width=10)
     for seq, val in output.items():
-        labels = [
-            id_to_label[int(i)] for i in seq
-            if id_to_label[int(i)] not in ('<EOS>', '<SOS>')
-        ]
+        labels = itertools.takewhile(lambda x: x != "EOS", string)
+        #labels = [
+            #id_to_label[int(i)] for i in seq
+            #if id_to_label[int(i)] 
+        #]
         labels_non_f = [
-            id_to_label[int(i)] for i in seq  
+            id_to_label[int(i)] for i in seq
             if id_to_label[int(i)]
         ]
         print(list(labels_non_f), val[0])
