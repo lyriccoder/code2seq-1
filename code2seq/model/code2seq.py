@@ -92,6 +92,33 @@ class Code2Seq(LightningModule):
         )
         return output_logits, attention_weights
 
+        
+    def test(
+        self,
+        from_token: torch.Tensor,
+        path_nodes: torch.Tensor,
+        to_token: torch.Tensor,
+        contexts_per_label: torch.Tensor,
+        output_length: int,
+        target_sequence: torch.Tensor = None,
+        beam_width: int = 3
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Generate output sequence based on encoder output
+
+        :param encoder_output: [n sequences; encoder size] -- stacked encoder output
+        :param segment_sizes: [batch size] -- size of each segment in encoder output
+        :param output_size: size of output sequence
+        :param target_sequence: [batch size; max seq len] -- if passed can be used for teacher forcing
+        :return:
+            [output size; batch size; vocab size] -- sequence with logits for each position
+            [output size; batch size; encoder seq length] -- sequence with attention weights for each position
+        """
+        
+        encoded_paths = self._encoder(from_token, path_nodes, to_token)
+        return self._decoder.test(
+            encoded_paths, contexts_per_label, output_length, beam_width, target_sequence
+        )
+      
     # ========== Model step ==========
 
     def logits_from_batch(
