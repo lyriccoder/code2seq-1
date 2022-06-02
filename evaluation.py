@@ -23,12 +23,10 @@ class PathContextConvert:
         raw_sample = sourceCode
         raw_label, *raw_path_contexts = raw_sample.split()
         n_contexts = min(len(raw_path_contexts), self._config.max_context)
-        #print('getPathContext')
         if self._random_context:
             shuffle(raw_path_contexts)
             
         raw_path_contexts = raw_path_contexts[:n_contexts]
-        #print(f'raw_path_contexts {raw_path_contexts}')
         if self._config.max_label_parts == 1:
             label = self.tokenize_class(raw_label, self._vocab.label_to_id)
         else:
@@ -110,8 +108,6 @@ if __name__ == '__main__':
     # checkpoint_path = config.checkpoint
     c2s = Code2Seq.load_from_checkpoint(args.checkpoint_path)
     c2s.eval()
-    #print(f'model_config {c2s._model_config}')
-    # print(dir(c2s))
     id_to_label = {idx: lab for (lab, idx) in c2s._vocabulary.label_to_id.items()}
 
     converter = PathContextConvert(c2s._vocabulary, config.data, False)
@@ -127,8 +123,6 @@ if __name__ == '__main__':
         _transpose([path.to_token for path in s.path_contexts]),
         dtype=torch.long)
     contexts = torch.tensor([len(s.path_contexts)])
-    #print(f'from_token {from_token}')
-    #print(f'path_nodes {path_nodes}')
     output = c2s.test(
         from_token=from_token,
         path_nodes=path_nodes,
@@ -136,13 +130,7 @@ if __name__ == '__main__':
         contexts_per_label=contexts,
         output_length=10,
         beam_width=10)
-    #print(output[0].shape)
-    #o = output[0].squeeze(1)
-    #print(output)
-    #predictions = output[0].squeeze(1).argmax(-1)
-    #print(predictions)
     for seq, val in output.items():
-        #print('SEQSEQ ', seq)
         labels = [
             id_to_label[int(i)] for i in seq
             if id_to_label[int(i)] not in ('<EOS>', '<SOS>')
