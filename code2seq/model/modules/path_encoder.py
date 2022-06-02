@@ -76,7 +76,7 @@ class PathEncoder(nn.Module):
         concat = torch.cat(encoded_contexts, dim=-1)
         concat = self.embedding_dropout(concat)
         return torch.tanh(self.norm(self.linear(concat)))
-        
+
     def forward(self, from_token: torch.Tensor, path_nodes: torch.Tensor, to_token: torch.Tensor) -> torch.Tensor:
         """Encode each path context into the vector
 
@@ -94,5 +94,4 @@ class PathEncoder(nn.Module):
 
         # [n contexts; output size]
         output = self._concat_with_linear([encoded_from_tokens, encoded_paths, encoded_to_tokens])
-
         return output
