@@ -10,6 +10,7 @@ from code2seq.data.path_context import LabeledPathContext, Path
 from typing import Optional, List, cast
 from random import shuffle
 from typing import Dict, List, Optional
+import itertools
 
 
 class PathContextConvert:
@@ -100,7 +101,7 @@ if __name__ == '__main__':
     id_to_label = {idx: lab for (lab, idx) in c2s._vocabulary.label_to_id.items()}
 
     converter = PathContextConvert(c2s._vocabulary, config.data, False)
-    s = converter.getPathContext(path_context)
+    s = converter.getPathContext(args.path_context)
     from_token = torch.tensor(
         _transpose([path.from_token for path in s.path_contexts]),
         dtype=torch.long)
@@ -119,14 +120,10 @@ if __name__ == '__main__':
         output_length=10,
         beam_width=10)
     for seq, val in output.items():
-        labels = itertools.takewhile(lambda x: x != "EOS", string)
-        #labels = [
-            #id_to_label[int(i)] for i in seq
-            #if id_to_label[int(i)] 
-        #]
         labels_non_f = [
             id_to_label[int(i)] for i in seq
             if id_to_label[int(i)]
         ]
+        labels = itertools.takewhile(lambda x: x != '<EOS>', labels_non_f)
         print(list(labels_non_f), val[0])
         print(list(labels))
