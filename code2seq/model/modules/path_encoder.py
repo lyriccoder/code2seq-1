@@ -3,8 +3,6 @@ from typing import List
 import torch
 from omegaconf import DictConfig
 from torch import nn
-import pickle
-import uuid
 
 
 class PathEncoder(nn.Module):
@@ -78,17 +76,6 @@ class PathEncoder(nn.Module):
         concat = torch.cat(encoded_contexts, dim=-1)
         concat = self.embedding_dropout(concat)
         return torch.tanh(self.norm(self.linear(concat)))
-
-    def save(self, your_data, filename):
-        # Store data (serialize)
-        with open(f'{filename}', 'wb') as handle:
-            pickle.dump(your_data, handle, protocol=pickle.HIGHEST_PROTOCOL)
-            
-    def load(self, filename):
-        # Load data (deserialize)
-        with open(f'{filename}', 'rb') as handle:
-            unserialized_data = pickle.load(handle)
-            return unserialized_data
         
     def forward(self, from_token: torch.Tensor, path_nodes: torch.Tensor, to_token: torch.Tensor) -> torch.Tensor:
         """Encode each path context into the vector
@@ -107,7 +94,5 @@ class PathEncoder(nn.Module):
 
         # [n contexts; output size]
         output = self._concat_with_linear([encoded_from_tokens, encoded_paths, encoded_to_tokens])
-        #print(f'output {output}')
-        #print(f'encoded_from_tokens{encoded_from_tokens}')
-        
+
         return output
