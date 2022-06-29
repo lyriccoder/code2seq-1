@@ -74,8 +74,6 @@ class PathEncoder(nn.Module):
     def _concat_with_linear(self, encoded_contexts: List[torch.Tensor]) -> torch.Tensor:
         # [n contexts; sum across all embeddings]
         concat = torch.cat(encoded_contexts, dim=-1)
-
-        # [n contexts; output size]
         concat = self.embedding_dropout(concat)
         return torch.tanh(self.norm(self.linear(concat)))
 
@@ -90,7 +88,7 @@ class PathEncoder(nn.Module):
         # [n contexts; embedding size]
         encoded_from_tokens = self._token_embedding(from_token)
         encoded_to_tokens = self._token_embedding(to_token)
-
+        
         # [n contexts; rnn size * num directions]
         encoded_paths = self._path_nodes_embedding(path_nodes)
 
